@@ -1,0 +1,35 @@
+import pandas
+df0 = pandas.read_excel(r"C:\Users\sukhpreet\Desktop\python-files\test.xlsx", sheet_name=0)
+df1 = pandas.read_excel(r"C:\Users\sukhpreet\Desktop\python-files\test.xlsx", sheet_name=1)
+#print (df0)
+df0['combined'] = df0['fin year'].astype(str)+"-"+df0['business area code']
+df1['combined'] = df1['fin year'].astype(str)+"-"+df1['business area code']
+print (df0)
+print (df1)
+temp_df = pandas.DataFrame()
+
+for index, row in df0.iterrows():
+        #print(row['combined'])
+        for index, row1 in df1.iterrows():
+            if (row['combined'] == row1['combined']):
+                #print(row1['combined'])
+                row1['shipment qty']=abs(row1['shipment qty']-row['shipment qty'])
+                row1['shipment amount']=abs(row1['shipment amount']-row['shipment amount'])
+                #print(row1['combined'],row1['shipment qty'])
+                #data = [ row1['combined'], row1['shipment qty']]
+                new_df = pandas.DataFrame({"combined_code":[row1['combined']],"delta_qty":[row1['shipment qty']],"delta_amount":[row1['shipment amount']]})
+                temp_df = temp_df.append(new_df, ignore_index=True)
+                #temp_df = temp_df.append(new_df, ignore_index=True)
+                #print(new_df)                
+                #new_df.to_excel(r"C:\Users\sukhpreet\Desktop\python-files\test1.xlsx", index=False)
+
+
+print(temp_df)
+temp_df[['fin year','business area code']] = temp_df.combined_code.str.split("-",expand=True)
+temp_df = temp_df[['fin year','business area code','delta_qty','delta_amount']]
+
+temp_df.to_excel(r"C:\Users\sukhpreet\Desktop\python-files\test1.xlsx", index=False, sheet_name="calculated_delta")
+                
+                
+                    
+                
