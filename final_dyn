@@ -1,0 +1,84 @@
+import pandas
+from openpyxl import load_workbook
+
+from pathlib import Path
+directory = input("Please provide path of your excel file :")
+file_name = input("Please provide file name :")
+suffix = '.xlsx'
+
+c_path=Path(directory,file_name).with_suffix(suffix)
+
+df_first_file0 = pandas.read_excel(c_path,sheet_name=0)
+df_first_file1 = pandas.read_excel(c_path, sheet_name=1)
+col_df = pandas.DataFrame(columns=['cols'])
+
+col_count = input("How many columns you want to include for comparision?")
+print('Enter the correct column names as per the sheet')
+temp=""
+for i in range(int(col_count)):
+    a = input("Enter column name "+str(i+1)+" : ")
+    col_df.loc[i, ['cols']] = a
+    
+col_list = col_df['cols'].tolist() 
+#print(col_list)
+temp_df1 = pandas.DataFrame()   
+temp_df = pandas.DataFrame()
+df_first_file0['combined']=""
+df_first_file1['combined']=""
+for index, col_name in enumerate(col_list):
+    df_first_file0['combined']=df_first_file0['combined']+"-"+df_first_file0[col_name].astype(str) 
+    df_first_file1['combined']=df_first_file1['combined']+"-"+df_first_file1[col_name].astype(str)
+    
+for index, row in df_first_file0.iterrows():
+    for index, row1 in df_first_file1.iterrows():
+        if(row['combined'] == row1['combined']):
+            row1['shipment qty']=abs(row1['shipment qty']-row['shipment qty'])
+            row1['shipment amount']=abs(row1['shipment amount']-row['shipment amount'])
+            new_df = pandas.DataFrame({"combined_code":[row1['combined']],"delta_shipment_qty":[row1['shipment qty']],"delta_shipment_amount":[row1['shipment amount']]})
+            temp_df = temp_df.append(new_df, ignore_index=True)
+            
+col_list.insert(0,'dummy')
+#print(col_list)
+com_df = pandas.DataFrame(columns=col_list)
+
+
+    
+temp_df1[col_list] = temp_df.combined_code.str.split("-",expand=True)
+#temp_df=temp_df.drop(['dummy','combined_code'],axis=1)
+
+final_df = temp_df1.join(temp_df)
+final_df=final_df.drop(['dummy','combined_code'],axis=1)
+
+book = load_workbook(c_path)
+with pandas.ExcelWriter(c_path, engine='openpyxl') as writer:
+    writer.book=book
+    writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+    final_df.to_excel(writer, 'delta_calculation',index=False)
+    writer.save()
+
+
+
+#output_name = input("What name would you like to give to the output file: ")
+#out_path = Path(directory,file_name).with_suffix(suffix)
+#temp_df.to_excel(out_path, index=False, sheet_name="calculated_delta")
+
+#temp_df = temp_df.join(temp_df.combined_code.str.split("-",expand=True))
+
+#del temp_df['0']
+
+print ("Operation successfully completed!!")
+print ("File is saved at path: "+ str(c_path))
+#print(temp_df)
+
+    
+           
+
+    
+    
+
+    
+    
+    
+    
+
+
